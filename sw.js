@@ -1,6 +1,6 @@
 // Cache Storage dùng chung cả origin decoolboy-source.github.io: chỉ xóa cache của chính app này.
 const CACHE_PREFIX = "COPELANDselect-";
-const CACHE_NAME = CACHE_PREFIX + "v2";
+const CACHE_NAME = CACHE_PREFIX + "v3";
 const ASSETS = [
   "./",
   "./index.html",
@@ -8,6 +8,8 @@ const ASSETS = [
   "./style.css",
   "./icons.js",
   "./app.js",
+  "./handbook-data.js",
+  "./handbook.js",
   "./data-io.js",
   "./data.json",
   "./manifest.json",

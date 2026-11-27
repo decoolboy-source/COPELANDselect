@@ -1,7 +1,7 @@
 /* [COPELANDselect] localStorage dùng chung origin với các PWA khác: mọi khóa của app này có tiền tố "COPELANDselect:". */
 
 // ===================== Build info =====================
-const BUILD_VERSION = "2026-11-27.1";
+const BUILD_VERSION = "2026-11-27.2";
 
 // ===================== i18n: UI strings =====================
 const UI = {
@@ -10,6 +10,10 @@ const UI = {
     tagline: "Máy nén lạnh Copeland (ZX)",
     navLookup: "Tra cứu",
     navReport: "Báo cáo",
+    navHandbook: "Sổ tay",
+    hbTitle: "Sổ tay cụm máy Copeland",
+    hbSub: "Tên model, công suất và mã điện cụm máy ZX, checklist khởi động, cách tính quá nhiệt — tóm tắt từ tài liệu của hãng.",
+    hbSearchPh: "Tìm: ZXD, mã điện, quá nhiệt…",
     conditionsTitle: "Điều kiện tra cứu",
     reportTitle: "Báo cáo thiết bị đã chọn",
     exportTitle: "Phiếu yêu cầu báo giá",
@@ -111,6 +115,10 @@ const UI = {
     tagline: "Copeland (ZX) compressors",
     navLookup: "Lookup",
     navReport: "Report",
+    navHandbook: "Handbook",
+    hbTitle: "Copeland unit handbook",
+    hbSub: "ZX model codes, capacities and motor codes, start-up checklist, superheat calculation — summarised from maker documents.",
+    hbSearchPh: "Search: ZXD, motor code, superheat…",
     conditionsTitle: "Lookup conditions",
     reportTitle: "Selected equipment report",
     exportTitle: "Quote request",
@@ -495,6 +503,10 @@ function applyStaticText(){
     const key = el.getAttribute("data-i18n");
     if (UI[LANG][key] !== undefined) el.textContent = UI[LANG][key];
   });
+  document.querySelectorAll("[data-i18n-ph]").forEach(el => {
+    const key = el.getAttribute("data-i18n-ph");
+    if (UI[LANG][key] !== undefined) el.placeholder = UI[LANG][key];
+  });
   document.getElementById("langLabel").textContent = LANG === "vi" ? "EN" : "VI";
   document.title = UI[LANG].appTitle;
 }
@@ -850,6 +862,7 @@ document.getElementById("langBtn").addEventListener("click", () => {
   LANG = LANG === "vi" ? "en" : "vi";
   localStorage.setItem("COPELANDselect:lang", LANG);
   refreshAllText();
+  if (!document.getElementById("hbView").hidden) HB.render(LANG);
 });
 
 uiIconsMount();
@@ -1031,14 +1044,17 @@ for (const f of COMMERCIAL_FIELDS) {
 }
 
 // ---- view toggling ----
-// Hai màn hình: tra cứu / báo cáo. Thanh dưới (điện thoại) và nút Báo cáo (PC) chuyển qua lại.
+// Ba màn hình: tra cứu / sổ tay / báo cáo. Thanh dưới (điện thoại) và nút trên thanh đầu (PC) chuyển qua lại.
 function showView(name){
-  const onReport = name === "report";
-  document.getElementById("lookupView").hidden = onReport;
-  document.getElementById("reportView").hidden = !onReport;
-  const h = document.getElementById("navHome"), q = document.getElementById("navQuote");
-  if (onReport) { h.removeAttribute("aria-current"); q.setAttribute("aria-current", "page"); renderCart(); }
-  else { q.removeAttribute("aria-current"); h.setAttribute("aria-current", "page"); }
+  const views = { lookup: "lookupView", hb: "hbView", report: "reportView" };
+  const navs = { lookup: "navHome", hb: "navHb", report: "navQuote" };
+  for (const k of Object.keys(views)) {
+    document.getElementById(views[k]).hidden = k !== name;
+    const n = document.getElementById(navs[k]);
+    if (k === name) n.setAttribute("aria-current", "page"); else n.removeAttribute("aria-current");
+  }
+  if (name === "report") renderCart();
+  if (name === "hb") HB.render(LANG);
   window.scrollTo(0, 0);
 }
 document.getElementById("cartBtn").addEventListener("click", () => showView("report"));
@@ -1046,6 +1062,11 @@ document.getElementById("navQuote").addEventListener("click", () => showView("re
 document.getElementById("navHome").addEventListener("click", () => showView("lookup"));
 document.getElementById("homeBrand").addEventListener("click", () => showView("lookup"));
 document.getElementById("backToLookupBtn").addEventListener("click", () => showView("lookup"));
+document.getElementById("hbBtn").addEventListener("click", () => showView("hb"));
+document.getElementById("navHb").addEventListener("click", () => showView("hb"));
+document.getElementById("backFromHbBtn").addEventListener("click", () => showView("lookup"));
+HB.init({ prefix: "COPELANDselect:" });
+if (location.hash === "#so-tay") showView("hb");
 document.getElementById("clearCartBtn").addEventListener("click", clearCart);
 
 document.getElementById("addToReportBtn").addEventListener("click", () => {
